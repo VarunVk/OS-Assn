@@ -45,6 +45,7 @@ void printStats(char* path, const int max) {
             memset(&statbuf, 0, sizeof(struct stat));
             if (stat(d_path, &statbuf) == 0)
             {
+                // Copy the required fields to the struct Files
                 strcpy(Files[count].name, dp->d_name);
                 Files[count].id              = statbuf.st_uid;
                 Files[count].time_lastAccess = statbuf.st_atim;
@@ -58,6 +59,7 @@ void printStats(char* path, const int max) {
             }
         }
     }
+    // Print all the entries in Files with total folder size
     for (int i=0; i<count; i++)
     {
         struct timespec present_time;
