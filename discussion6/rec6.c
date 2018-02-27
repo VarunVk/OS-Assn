@@ -69,23 +69,10 @@ void deepCopy(char* old, char* new) {
         sprintf(src_path, "%s/%s", old, dp->d_name);
         sprintf(dst_path, "%s/%s", new, dp->d_name);
 
+        int size = 0;
         struct stat src_stat;
         lstat(src_path, &src_stat);
 
-        int src_fd;
-        if ((src_fd = open(src_path, O_RDONLY)) < 0)
-        {
-            printf("Skipping %s as it couldn't be opened. Errno %d\n", src_path, errno);
-            continue;
-        }
-        int dst_fd;
-        if ((dst_fd = open(dst_path, O_WRONLY | O_CREAT)) < 0)
-        {
-            printf("Skipping %s as it couldn't be opened. Errno %d\n", dst_path, errno);
-            continue;
-        }
-
-        int size = 0;
         if (S_ISLNK(src_stat.st_mode))
         {
             int src_size = (int) src_stat.st_size;
@@ -95,7 +82,7 @@ void deepCopy(char* old, char* new) {
             {
                 buf[size] = '\0';
                 if (symlink(buf, dst_path) != 0) {
-                    printf("There was a problem creating a link %s to %s (Errno %d)\n",
+                    printf("There was a problem creating a link %s --> %s (Errno %d)\n",
                            dst_path, buf, errno);
                 }
             }
@@ -104,6 +91,19 @@ void deepCopy(char* old, char* new) {
         } else {
             char *buf = malloc(256);
             memset(buf, 0, 256);
+            int src_fd;
+            if ((src_fd = open(src_path, O_RDONLY)) < 0)
+            {
+                printf("Skipping %s as it couldn't be opened. Errno %d\n", src_path, errno);
+                continue;
+            }
+            int dst_fd;
+            if ((dst_fd = open(dst_path, O_WRONLY | O_CREAT)) < 0)
+            {
+                printf("Skipping %s as it couldn't be opened. Errno %d\n", dst_path, errno);
+                continue;
+            }
+
             while ((size = read(src_fd, buf, 256)) > 0)
             {
                 int nwrite = 0;
@@ -113,12 +113,12 @@ void deepCopy(char* old, char* new) {
                 }
                 memset(buf, 0, 256);
             }
+            close(src_fd);
+            close(dst_fd);
             if (buf != NULL)
                 free(buf);
         }
         chmod(dst_path, src_stat.st_mode);
-        close(src_fd);
-        close(dst_fd);
     }
 }
 
