@@ -125,7 +125,6 @@ void deepCopy(char* old, char* new) {
 int main(int argc, char** argv) {
 
     if (argc < NUM_ARGS + 1) {
-
         printf("Wrong number of args, expected %d, given %d\n", NUM_ARGS, argc - 1);
         exit(1);
     }
@@ -140,10 +139,10 @@ int main(int argc, char** argv) {
     gettimeofday(&deepTimeVal, NULL);
 
     double start       = (double) startTimeVal.tv_sec   + 1.e-6 * (double)startTimeVal.tv_usec;
-    double deepTime    = (double) deepTimeVal.tv_sec    + 1.e-6 *  (double)deepTimeVal.tv_usec;
+    double deepTime    = (double) deepTimeVal.tv_sec    + 1.e-6 * (double)deepTimeVal.tv_usec;
     double shallowTime = (double) shallowTimeVal.tv_sec + 1.e-6 * (double)shallowTimeVal.tv_usec;
 
-    printf("Shallow Copy    = %.4f\n", shallowTime - start);
-    printf("Deep Copy       = %.4f\n", deepTime - shallowTime);
+    printf("Shallow Copy    = %.4f second\n", shallowTime - start);
+    printf("Deep Copy       = %.4f second\n", deepTime - shallowTime);
 
 }
