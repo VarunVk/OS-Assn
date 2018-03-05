@@ -21,10 +21,26 @@ struct matrix {
 
 struct matrix* newMatrix(int x, int y) {
 
-	int data[x][y];
-	struct matrix m = {x, y, data};
-	return &m;
+    int **data = malloc(x*sizeof(int *));
+	for (int i=0; i<x; i++)
+		data[i] = malloc(y * sizeof(int));
+	struct matrix *m = malloc(sizeof(struct matrix));
+	m->x    = x;
+	m->y    = y;
+	m->data = data;
+	return m;
 }
+
+void matrixFree(struct matrix* m) {
+	for (int i=0; i<m->x; i++)
+		if (m->data[i])
+			free(m->data[i]);
+	if (m->data)
+		free(m->data);
+	if (m)
+		free(m);
+}
+
 
 void diagAdd(struct matrix* m, int c) {
 
@@ -36,7 +52,9 @@ void diagAdd(struct matrix* m, int c) {
 
 struct matrix* matrixMultiply(struct matrix** matrices, int start, int end) {
 
-	struct matrix* mat = {matrices[start]->x, matrices[start]->y, matrices[start]->data};
+	struct matrix* mat = newMatrix(matrices[start]->x, matrices[start]->y);
+	for (int i=0; i<mat->x; i++)
+		memcpy(mat->data[i], matrices[start]->data[i], mat->y*sizeof(int));
 
 	for (int i=start+1; i < end; ++i) {
 		for (int j=0; j < matrices[i]->x; ++j) {
@@ -78,5 +96,9 @@ int main(int argc, char** argv) {
 		struct matrix* m = matrixMultiply(matrices, 0, max);
 
 		printf("First element in matrix = %d\n", m->data[0][0]);
+		for (int i=0; i < max; ++i)
+			matrixFree(matrices[i]);
+		if (m)
+			matrixFree(m);
 	}
 }
