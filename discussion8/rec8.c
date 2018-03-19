@@ -42,10 +42,18 @@ void fillRandom(int** matrix, int n) {
 	}
 }
 
+void freeMatrix(int **M, int n) {
+
+	for (int i=0; i<n; i++)
+		free(M[i]);
+	free(M);
+}
 // Add the values contianed in a single row of A and B into the same row in C.
 void matrixRowAdd(void* arg) {
+	struct threadArgs* temp = (struct threadArgs *) arg;
 
-	// TODO: Your code here.
+	for (int i=0; i<temp->n; i++)
+		temp->C[temp->row][i] = temp->A[temp->row][i] + temp->B[temp->row][i];
 }
 
 int main(int argc, char** argv) {
@@ -67,20 +75,49 @@ int main(int argc, char** argv) {
 	fillRandom(A, n);
 	fillRandom(B, n);
 
-	// Perform matrix addition in one thread.
+	// // Perform matrix addition in one thread.
 	long t1 = time(NULL);
 	struct threadArgs args[n];
-	
-	// TODO: Your code here.
+
+	for (int i=0; i<n; i++)
+	{
+		args[i].A = A;
+		args[i].B = B;
+		args[i].C = C;
+		args[i].n = n;
+		args[i].row = i;
+		matrixRowAdd(&args[i]);
+	}
 
 	long t2 = time(NULL);
-	printf("Time (in sec) to perform single thread add = %d\n", (t2 - t1));
+	printf("Time (in sec) to perform single thread add = %ld\n", (t2 - t1));
 
 	// Perform matrix addition with multiple (n) threads.
-	t1 = time(NULL);
-        
-	// TODO: Your code here.
+	pthread_t threadIds[n];
+	int** Cp = createMatrix(n);
 
-        t2 = time(NULL);
-        printf("Time (in sec) to perform multithreaded add = %d\n", (t2 - t1));
+	t1 = time(NULL);
+	for (int i=0; i<n; i++)
+	{
+		args[i].A   = A;
+		args[i].B   = B;
+		args[i].C   = Cp;
+		args[i].n   = n;
+		args[i].row = i;
+		pthread_create(&threadIds[i], NULL, &matrixRowAdd, &args[i]);
+	}
+
+	for (int i=0; i<n; i++)
+	{
+		pthread_join(threadIds[i], NULL);
+	}
+
+    t2 = time(NULL);
+    printf("Time (in sec) to perform multithreaded add = %ld\n", (t2 - t1));
+
+	// Free the allocated matrix memory
+	freeMatrix(A, n);
+	freeMatrix(B, n);
+	freeMatrix(C, n);
+	freeMatrix(Cp, n);
 }
