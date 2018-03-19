@@ -49,7 +49,7 @@ void freeMatrix(int **M, int n) {
 	free(M);
 }
 // Add the values contianed in a single row of A and B into the same row in C.
-void matrixRowAdd(void* arg) {
+void *matrixRowAdd(void* arg) {
 	struct threadArgs* temp = (struct threadArgs *) arg;
 
 	for (int i=0; i<temp->n; i++)
@@ -86,7 +86,7 @@ int main(int argc, char** argv) {
 		args[i].C = C;
 		args[i].n = n;
 		args[i].row = i;
-		matrixRowAdd(&args[i]);
+		(*matrixRowAdd)(&args[i]);
 	}
 
 	long t2 = time(NULL);
