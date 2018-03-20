@@ -48,10 +48,11 @@ void freeMatrix(int **M, int n) {
 		free(M[i]);
 	free(M);
 }
+
 // Add the values contianed in a single row of A and B into the same row in C.
 void *matrixRowAdd(void* arg) {
-	struct threadArgs* temp = (struct threadArgs *) arg;
 
+	struct threadArgs* temp = (struct threadArgs *) arg;
 	for (int i=0; i<temp->n; i++)
 		temp->C[temp->row][i] = temp->A[temp->row][i] + temp->B[temp->row][i];
 }
