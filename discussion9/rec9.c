@@ -17,6 +17,7 @@ struct account {
 
 	char* name;
 	double balance;
+    pthread_mutex_t *mutex;
 };
 
 struct xfer {
@@ -40,12 +41,16 @@ struct withdrawStruct {
 
 void deposit(struct account* act, double amt) {
 
-	act->balance += amt;
+	pthread_mutex_lock(act->mutex);
+    act->balance += amt;
+	pthread_mutex_unlock(act->mutex);
 }
 
 void withdraw(struct account* act, double amt) {
 
+	pthread_mutex_lock(act->mutex);
 	act->balance -= amt;
+	pthread_mutex_unlock(act->mutex);
 }
 
 void transfer(struct account* out, struct account* in, double amt) {
@@ -54,7 +59,7 @@ void transfer(struct account* out, struct account* in, double amt) {
 	deposit(in, amt);
 }
 
-void depositTask(void* arg) {
+void *depositTask(void* arg) {
 
 	struct depositStruct* dep = arg;
 
@@ -63,9 +68,11 @@ void depositTask(void* arg) {
 
 	// Deposit to account.
 	deposit(dep->in, dep->amt);
+
+    free(dep);
 }
 
-void withdrawTask(void* arg) {
+void *withdrawTask(void* arg) {
 
 	struct withdrawStruct* wit = arg;
 
@@ -74,9 +81,11 @@ void withdrawTask(void* arg) {
 
 	// Withdraw from account.
 	withdraw(wit->out, wit->amt);
+
+    free(wit);
 }
 
-void transferTask(void* arg) {
+void *transferTask(void* arg) {
 
 	struct xfer* x = arg;
 
@@ -85,6 +94,18 @@ void transferTask(void* arg) {
 
 	// Transfer.
 	transfer(x->out, x->in, x->amt);
+
+    free(x);
+}
+
+void freeAccounts(struct account *temp) {
+
+    if (temp) {
+        if (temp->mutex) {
+            free(temp->mutex);
+        }
+        free(temp);
+    }
 }
 
 int main(int argc, char** argv) {
@@ -103,11 +124,15 @@ int main(int argc, char** argv) {
 	bank1->name = (char*) malloc(sizeof(char) * 9);
 	strcpy(bank1->name, "Account1");
 	bank1->balance = 2500;
+    bank1->mutex = malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(bank1->mutex, NULL);
 
 	struct account* bank2 = (struct account*) malloc(sizeof(struct account));
 	bank2->name = (char*) malloc(sizeof(char) * 9);
 	strcpy(bank2->name, "Account2");
 	bank2->balance = 3000;
+    bank2->mutex = malloc(sizeof(pthread_mutex_t));
+    pthread_mutex_init(bank2->mutex, NULL);
 
 	// Create threads.
 	pthread_t pool[1000];
@@ -141,9 +166,15 @@ int main(int argc, char** argv) {
 		pthread_create(&pool[i], NULL, transferTask, (void*) x);
 	}
 
+    for (int i=0; i<1000; ++i)
+        pthread_join(pool[i], NULL);
+
 	struct timeval end;
 	gettimeofday(&end, NULL);
 	printf("The balance of account %s = %f\n", bank1->name, bank1->balance);
 	printf("The balance of account %s = %f\n", bank2->name, bank2->balance);
 	printf("Time to complete = %d\n", ((end.tv_sec - start.tv_sec) * 1000000) + (end.tv_usec - start.tv_usec));
+
+    freeAccounts(bank1);
+    freeAccounts(bank2);
 }
