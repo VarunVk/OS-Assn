@@ -15,8 +15,8 @@
 
 struct account {
 
-	char* name;
-	double balance;
+    char* name;
+    double balance;
     pthread_mutex_t *mutex;
 };
 
@@ -41,16 +41,16 @@ struct withdrawStruct {
 
 void deposit(struct account* act, double amt) {
 
-	pthread_mutex_lock(act->mutex);
+    pthread_mutex_lock(act->mutex);
     act->balance += amt;
-	pthread_mutex_unlock(act->mutex);
+    pthread_mutex_unlock(act->mutex);
 }
 
 void withdraw(struct account* act, double amt) {
 
-	pthread_mutex_lock(act->mutex);
-	act->balance -= amt;
-	pthread_mutex_unlock(act->mutex);
+    pthread_mutex_lock(act->mutex);
+    act->balance -= amt;
+    pthread_mutex_unlock(act->mutex);
 }
 
 void transfer(struct account* out, struct account* in, double amt) {
