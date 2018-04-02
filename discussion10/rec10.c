@@ -60,10 +60,13 @@ void condProducer(void* arg) {
 
 	// Counter.
 	static int in = 0;
-	++in;
 
 	// Add an element to the queue.
+    pthread_mutex_lock(cq->mutex);
+	++in;
 	enqueue(cq->q, in);
+    pthread_cond_signal(cq->cond);
+    pthread_mutex_unlock(cq->mutex);
 }
 
 // TODO: Insert code to use a condition variable.
@@ -75,7 +78,11 @@ void condConsumer(void* arg) {
 	struct condQueue* cq = (struct condQueue*) arg;
 
 	// Remove an element from the queue.
+    pthread_mutex_lock(cq->mutex);
+	while (cq->q->index == 0)
+    	pthread_cond_wait(cq->cond, cq->mutex);
 	condTotal += dequeue(cq->q);
+    pthread_mutex_unlock(cq->mutex);
 }
 
 // TODO: Insert code to use a semaphore.
@@ -87,10 +94,13 @@ void semProducer(void* arg) {
 	struct semQueue* sq = (struct semQueue*) arg;
 
 	static int in = 0;
-	++in;
 
 	// Add an element to the queue.
+    pthread_mutex_lock(sq->mutex);
+	++in;
 	enqueue(sq->q, in);
+	sem_post(sq->sem);
+    pthread_mutex_unlock(sq->mutex);
 }
 
 // TODO: Insert code to use a semaphore.
@@ -102,7 +112,10 @@ void semConsumer(void* arg) {
 	struct semQueue* sq = (struct semQueue*) arg;
 
 	// Reove an element from the queue.
+	sem_wait(sq->sem);
+	pthread_mutex_lock(sq->mutex);
 	semTotal += dequeue(sq->q);
+	pthread_mutex_unlock(sq->mutex);
 }
 
 int main(int argc, char** argv) {
@@ -153,6 +166,7 @@ int main(int argc, char** argv) {
 	// Create task queue.
 	struct semQueue* sq = (struct semQueue*) malloc(sizeof(struct semQueue));
 	sq->q = (struct queue*) malloc(sizeof(struct queue));
+	sq->q->index = 0;
 	sq->sem = (sem_t*) malloc(sizeof(sem_t));
 	sq->mutex = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
 	sem_init(sq->sem, 0, 0);
