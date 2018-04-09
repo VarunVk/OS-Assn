@@ -34,27 +34,16 @@ void eat(struct philosopher* p) {
 void dine(struct philosopher* p) {
 
 	// Grab the utensils.
-    struct timespec timeout;
     while (1) {
+		struct timespec timeout;
+		timeout.tv_nsec = rand()%10;
         pthread_mutex_lock(p->left);
-        timeout.tv_nsec = (rand()%1000);
         if (pthread_mutex_timedlock(p->right, &timeout) == 0) {
             break;
         } else {
             pthread_mutex_unlock(p->left);
         }
     }
-
-    /*
-    while (1) {
-        pthread_mutex_lock(p->left);
-        if (pthread_mutex_trylock(p->right) == 0) {
-            break;
-        } else {
-            pthread_mutex_unlock(p->left);
-        }
-    }
-    */
 
 	eat(p);
 
