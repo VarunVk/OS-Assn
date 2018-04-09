@@ -27,22 +27,41 @@ struct philosopher {
 void eat(struct philosopher* p) {
 
 	--(p->food);
-	
+
 	usleep(rand() % 10);
 }
 
 void dine(struct philosopher* p) {
 
 	// Grab the utensils.
-	pthread_mutex_lock(p->left);
-	pthread_mutex_lock(p->right);
-	
+    struct timespec timeout;
+    while (1) {
+        pthread_mutex_lock(p->left);
+        timeout.tv_nsec = (rand()%1000);
+        if (pthread_mutex_timedlock(p->right, &timeout) == 0) {
+            break;
+        } else {
+            pthread_mutex_unlock(p->left);
+        }
+    }
+
+    /*
+    while (1) {
+        pthread_mutex_lock(p->left);
+        if (pthread_mutex_trylock(p->right) == 0) {
+            break;
+        } else {
+            pthread_mutex_unlock(p->left);
+        }
+    }
+    */
+
 	eat(p);
-	
+
 	// Put them down.
 	pthread_mutex_unlock(p->right);
 	pthread_mutex_unlock(p->left);
-	
+
 }
 
 // DO NOT ALTER!
@@ -51,7 +70,7 @@ void threadFun(void* arg) {
 	usleep(rand() % 10);
 
 	struct philosopher* p = (struct philosopher*) arg;
-	
+
 	while (p->food > 0) dine(p);
 }
 
@@ -70,18 +89,18 @@ int main(int argc, char** argv) {
 	// Create threads.
 	pthread_t pool[NUM_THRD];
 	struct philosopher* p[NUM_THRD];
-	
+
 	// Create the utensils (mutexes).
 	pthread_mutex_t* locks[NUM_THRD];
 	for (int i=0; i < NUM_THRD; ++i) {
-	
+
 		locks[i] = (pthread_mutex_t*) malloc(sizeof(pthread_mutex_t));
 		pthread_mutex_init(locks[i], NULL);
 	}
-	
+
 	// Create the philosophers.
 	for (int i=0; i < NUM_THRD; ++i) {
-	
+
 		p[i] = (struct philosopher*) malloc(sizeof(struct philosopher));
 		p[i]->food = 100;
 		p[i]->left = locks[i];
@@ -97,6 +116,6 @@ int main(int argc, char** argv) {
 	for (int i=0; i < NUM_THRD; ++i) pthread_join(pool[i], NULL);
 
 	gettimeofday(&end, NULL);
-	
+
 	printf("Time (in us) to complete = %d\n", ((end.tv_sec - start.tv_sec) * 1000000) + (end.tv_usec - start.tv_usec));
 }
