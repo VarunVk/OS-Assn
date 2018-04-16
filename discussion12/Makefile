@@ -4,7 +4,7 @@ DBFLAGS=-g
 
 make: server.c client.c
 	$(CC) $(CFLAGS) -o serv.o server.c
-  $(CC) $(CFLAGS) -o client.o client.c
+	$(CC) $(CFLAGS) -o client.o client.c
 
 debug: server.c client.c
 	$(CC) $(CFLAGS) $(DBFLAGS) -o serv.o server.c

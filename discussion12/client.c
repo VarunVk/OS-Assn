@@ -27,30 +27,34 @@ int main(int argc, char** argv) {
 
 	// Create a TCP socket.
 	int sock = socket(AF_INET , SOCK_STREAM , 0);
-	
+
 	// Specify an address to connect to (we use the local host or 'loop-back' address).
 	struct sockaddr_in address;
 	address.sin_family = AF_INET;
 	address.sin_port = htons(SERVER_PORT);
 	address.sin_addr.s_addr = inet_addr("127.0.0.1");
-	
+
 	// Connect it.
 	if (connect(sock, (struct sockaddr *) &address, sizeof(address)) == 0) {
-	
+
 		// Buffer for data.
 		char buffer[256];
-	
+
 		// Open the file.
 		int fd = open(argv[1], O_RDONLY);
-		
+        int size = -1;
+
 		// TODO: Read the file and write to the socket.
-		
+
+        while ((size = read(fd, buffer, 256)) > 0) {
+            write(sock, buffer, size);
+        }
 		// Close the file.
 		close(fd);
 		close(sock);
-		
+
 	} else {
-	
+
 		perror("Connection failed!");
 	}
 }

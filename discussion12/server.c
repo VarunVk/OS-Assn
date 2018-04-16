@@ -25,37 +25,55 @@ int main(int argc, char** argv) {
 		printf("Wrong number of args, expected %d, given %d\n", NUM_ARGS, argc - 1);
 		exit(1);
 	}
-	
+
 	// Create a TCP socket.
 	int sock = socket(AF_INET , SOCK_STREAM , 0);
-	
+
 	// Bind it to a local address.
 	struct sockaddr_in servAddress;
 	servAddress.sin_family = AF_INET;
 	servAddress.sin_port = htons(SERVER_PORT);
 	servAddress.sin_addr.s_addr = htonl(INADDR_ANY);
 	bind(sock, (struct sockaddr *) &servAddress, sizeof(servAddress));
-	
+
 	// TODO: Listen on this socket.
-	
+    if (listen(sock, MAX_CONNECTIONS) == -1) {
+        perror("Unable to listen on server socket. Aborting...");
+        exit(EXIT_FAILURE);
+    }
+
 	// A server typically runs infinitely, with some boolean flag to terminate.
 	while (1) {
-		
+
 		// Now accept the incoming connections.
 		struct sockaddr_in clientAddress;
-		
+
 		socklen_t size = sizeof(struct sockaddr_in);
-		
+
 		// TODO: Accept a connection.
-		
+        int recvFd;
+		if ((recvFd = accept(sock, (struct sockaddr *)&clientAddress, &size)) == -1) {
+            perror("Unable to accept on server. Aborting...");
+            exit(EXIT_FAILURE);
+        }
+
 		// Buffer for data.
 		char buffer[256];
-		
+        int read_size = -1;
+
 		// TODO: Read from the socket and print the contents.
-		
+        while ((read_size = read(recvFd, buffer, 256)) > 0) {
+            printf("Accepted connection!Read in %s ", buffer);
+        }
+        if (read_size == -1) {
+            perror("Unable to read on server. Aborting...");
+            exit(EXIT_FAILURE);
+        }
+
 		// TODO: Close the connection.
+        close(recvFd);
 	}
-	
+
 	// Close the server socket.
 	close(sock);
 }
