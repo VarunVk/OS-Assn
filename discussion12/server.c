@@ -59,11 +59,15 @@ int main(int argc, char** argv) {
 
 		// Buffer for data.
 		char buffer[256];
+        memset(buffer, 0, 256);
         int read_size = -1;
 
+        printf("Accepted connection!Read in ");
 		// TODO: Read from the socket and print the contents.
-        while ((read_size = read(recvFd, buffer, 256)) > 0) {
-            printf("Accepted connection!Read in %s ", buffer);
+        while ((read_size = read(recvFd, buffer, 255)) > 0) {
+            printf("%s", buffer);
+            fflush(stdout);
+            memset(buffer, 0, 256);
         }
         if (read_size == -1) {
             perror("Unable to read on server. Aborting...");
