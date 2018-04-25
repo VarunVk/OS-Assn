@@ -27,19 +27,20 @@ struct bankAccount {
 
 struct threadArg {
 
-	int accountNumber;
+    // Added this to directlty to access the Account instead of using a global variable
+	struct bankAccount *accountNumber;
 	double change;
 	int clientfd;
+	// Added this release the sem once the thread has completed execution
+	sem_t *sem;
 };
-struct bankAccount *Accounts;
-sem_t sem;
 
 void *threadFunction(void* args) {
 
 	struct threadArg* arg = args;
 
 	// TODO: Alter the specified account;
-	struct bankAccount *Ac = Accounts + arg->accountNumber;
+	struct bankAccount *Ac = arg->accountNumber;
 	int balance;
 	pthread_mutex_lock(Ac->mutex);
 	Ac->balance += arg->change;
@@ -54,14 +55,14 @@ void *threadFunction(void* args) {
 	}
 	// Close client connection.
 	close(arg->clientfd);
-	sem_post(&sem);
+	sem_post(arg->sem);
 
 	free(args);
 }
 
 int main(int argc, char** argv) {
 
-	if (argc > NUM_ARGS + 1) {
+	if (argc != NUM_ARGS + 1) {
 
 		printf("Wrong number of args, expected %d, given %d\n", NUM_ARGS, argc - 1);
 		exit(1);
@@ -82,8 +83,8 @@ int main(int argc, char** argv) {
 
 	// TODO: Init bank accounts.
 	const int numAccounts = atoi(argv[1]);
-	printf("numAccounts =%d\n", numAccounts);
-	Accounts = calloc(numAccounts, sizeof(struct bankAccount));
+	struct bankAccount *Accounts = calloc(numAccounts, sizeof(struct bankAccount));
+
 	struct bankAccount *temp = Accounts;
 	for (int i=0; i<numAccounts; i++)
 	{
@@ -99,6 +100,7 @@ int main(int argc, char** argv) {
 	int Max_threads = atoi(argv[2]);
 	pthread_t tid[Max_threads];
 	int index = 0;
+	sem_t sem;
 	sem_init(&sem, 0, Max_threads);
 
 	// A server typically runs infinitely, with some boolean flag to terminate.
@@ -116,16 +118,19 @@ int main(int argc, char** argv) {
 		char recvBuf[1024];
 		if ((recvSize = recv(clientfd, recvBuf, 1024, 0)) > 0) {
             recvBuf[recvSize] = '\0';
-            printf("Request received %s\n", recvBuf);
-        }
+            // printf("Request received %s\n", recvBuf);
+        } else {
+			continue;
+		}
 
 		// TODO: Run a thread to handle the request.
 		char *savePtr;
 		struct threadArg *args = calloc(1, sizeof(struct threadArg));
-		args->accountNumber = atoi(strtok_r(recvBuf, " ", &savePtr));
+		args->accountNumber = Accounts + atoi(strtok_r(recvBuf, " ", &savePtr));
 		args->change        = atoi(strtok_r(NULL, " ", &savePtr));
 		args->clientfd      = clientfd;
-		printf("Parsed data Ac Num %d change %f\n", args->accountNumber, args->change);
+		args->sem           = &sem;
+		// printf("Parsed data Ac Num %lf change %f\n", args->accountNumber->balance, args->change);
 
 		pthread_create(&tid[index%Max_threads], NULL, threadFunction, args);
 		index++;

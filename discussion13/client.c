@@ -19,7 +19,7 @@
 
 int main(int argc, char** argv) {
 
-	if (argc < NUM_ARGS + 1) {
+	if (argc != NUM_ARGS + 1) {
 
 		printf("Wrong number of args, expected %d, given %d\n", NUM_ARGS, argc - 1);
 		exit(1);
@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 			perror("Error while receiving response from server. Errno: ");
 		}
 		recvBuf[recvSize] = '\0';
-		printf("Recvd %s\n", recvBuf);
+		printf("Account balance: %s\n", recvBuf);
 
 		// Close the socket.
 		close(sock);
