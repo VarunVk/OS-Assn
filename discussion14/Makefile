@@ -2,12 +2,13 @@ CC=gcc
 CFLAGS=-std=c99
 DBFLAGS=-g
 
-make: server.c client.c
-	$(CC) $(CFLAGS) -o server.o server.c -pthread
-	$(CC) $(CFLAGS) -o client.o client.c -pthread
+make: rec14_1.c rec14_2.c
+	$(CC) $(CFLAGS) -o rec14_1.o rec14_1.c
+	$(CC) $(CFLAGS) -o rec14_2.o rec14_2.c
 
-debug: server.c client.c
-	$(CC) $(CFLAGS) $(DBFLAGS) -o server.o server.c -pthread
-	$(CC) $(CFLAGS) $(DBFLAGS) -o client.o client.c -pthread
+debug: rec14_1.c rec14_2.c
+	$(CC) $(CFLAGS) $(DBFLAGS) -o rec14_1.o rec14_1.c
+	$(CC) $(CFLAGS) $(DBFLAGS) -o rec14_2.o rec14_2.c
+
 clean:
-	rm server.o client.o
+	rm rec14_1.o rec14_2.o
