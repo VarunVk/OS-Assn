@@ -1,10 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <signal.h>
+#include <time.h>
 
 void foo() {
 
 	static int count = 0;
-	printf("%d: Count = %d\n", time(NULL), ++count);
+	printf("%d: Count = %d\n", (int)time(NULL), ++count);
 	sleep(1);
 }
 

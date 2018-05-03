@@ -1,5 +1,8 @@
 #include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include <signal.h>
+#include <time.h>
 
 int KEEP_RUNNING = 1;
 
@@ -7,7 +10,7 @@ void foo() {
 
 	if (KEEP_RUNNING) {
 		static int count = 0;
-		printf("%d: Count = %d\n", time(NULL), ++count);
+		printf("%d: Count = %d\n", (int)time(NULL), ++count);
 		sleep(1);
 	}
 }
