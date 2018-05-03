@@ -11,7 +11,6 @@ void foo() {
 	if (KEEP_RUNNING) {
 		static int count = 0;
 		printf("%d: Count = %d\n", (int)time(NULL), ++count);
-		sleep(1);
 	}
 }
 void sigIntHandler(int sig)
