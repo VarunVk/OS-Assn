@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c99
+CFLAGS=-std=gnu99 -lpthread
 DBFLAGS=-g
 
 make: rec14_1.c rec14_2.c
